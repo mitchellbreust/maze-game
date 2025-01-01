@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
 import generateMaze from "../generateMaze";
 import generatePlayerPos from "../generatePlayerPos";
@@ -11,9 +11,18 @@ const MazeCont = styled.div`
   height: 800px;
   border: solid;
   margin: auto;
+  position: relative;
 `;
 
 const PathPiece = styled.div``;
+
+const StartingPiece = styled.div`
+  background-color: blue;
+`;
+
+const EndPiece = styled.div`
+  background-color: green;
+`;
 
 const WallPiece = styled.div`
   background-color: grey;
@@ -27,13 +36,36 @@ const WallPiece = styled.div`
   }
 `;
 
-
+const Character = styled.p`
+  width: 30px;
+  height: 30px;
+  background-color: black;
+  border-radius: 180px;
+  position: absolute;
+`
 
 const Maze = () => {
   const [gameMaze, setGameMaze] = useState(generateMaze());
-  const [playerPos, setPlayerPos] = useState(generatePlayerPos());
+  const [playerPos, setPlayerPos] = useState(generatePlayerPos(gameMaze))
 
-  console.log(gameMaze[0]);
+  const handleKeyDown = (press) => {
+    if (press.key === "ArrowRight") {
+      setPlayerPos(prevPos => ({ ...prevPos, left: prevPos.left + 20 }));
+    } else if (press.key === "ArrowLeft") {
+      setPlayerPos(prevPos => ({ ...prevPos, left: prevPos.left - 20 }));
+    } else if (press.key === "ArrowUp") {
+      setPlayerPos(prevPos => ({ ...prevPos, top: prevPos.top - 20 }));
+    } else if (press.key === "ArrowDown") {
+      setPlayerPos(prevPos => ({ ...prevPos, top: prevPos.top + 20 }));
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("keydown", handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [playerPos])
+
+
   return (
     <>
       <MazeCont>
@@ -47,8 +79,20 @@ const Maze = () => {
               </WallPiece>
             );
           }
-          return <PathPiece key={idx} />;
+          else if (val === 1) {
+            return <PathPiece key={idx} />;
+          }
+          else if (val === 2) {
+            return (
+            <StartingPiece key={idx}>
+            </StartingPiece>
+            )
+          }
+          else {
+            return <EndPiece key={idx}/>
+          }
         })}
+        <Character style={{ top: `${playerPos.top}px`, left: `${playerPos.left}px` }} />
       </MazeCont>
     </>
   );
