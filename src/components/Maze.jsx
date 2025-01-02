@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import styled from "styled-components";
+import findRowAndColumn from "../findRowAndColumn";
 import generateMaze from "../generateMaze";
 import generatePlayerPos from "../generatePlayerPos";
 
@@ -37,8 +38,8 @@ const WallPiece = styled.div`
 `;
 
 const Character = styled.p`
-  width: 30px;
-  height: 30px;
+  width: 20px;
+  height: 20px;
   background-color: black;
   border-radius: 180px;
   position: absolute;
@@ -49,15 +50,37 @@ const Maze = () => {
   const [playerPos, setPlayerPos] = useState(generatePlayerPos(gameMaze))
 
   const handleKeyDown = (press) => {
+    const newPos = { ...playerPos };
+  
+    // Update position based on key press
     if (press.key === "ArrowRight") {
-      setPlayerPos(prevPos => ({ ...prevPos, left: prevPos.left + 20 }));
+      newPos.left += 20;
     } else if (press.key === "ArrowLeft") {
-      setPlayerPos(prevPos => ({ ...prevPos, left: prevPos.left - 20 }));
+      newPos.left -= 20;
     } else if (press.key === "ArrowUp") {
-      setPlayerPos(prevPos => ({ ...prevPos, top: prevPos.top - 20 }));
+      newPos.top -= 20;
     } else if (press.key === "ArrowDown") {
-      setPlayerPos(prevPos => ({ ...prevPos, top: prevPos.top + 20 }));
+      newPos.top += 20;
     }
+  
+    // Check if the new position is out of bounds
+    if (newPos.left < 0 || newPos.left >= 800 || newPos.top < 0 || newPos.top >= 800) {
+      return;
+    }
+  
+    // Find the row and column of the new position
+    const rowCol = findRowAndColumn(newPos.left, newPos.top);
+  
+    // Calculate the index in the gameMaze array
+    const mazeIndex = rowCol.row * 10 + rowCol.col;
+  
+    // Check if the new position is a wall (value 0 in gameMaze)
+    if (gameMaze[mazeIndex] === 0) {
+      return;
+    }
+  
+    // Update the player's position
+    setPlayerPos(newPos);
   };
 
   useEffect(() => {
