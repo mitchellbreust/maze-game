@@ -10,7 +10,6 @@ const MazeCont = styled.div`
     grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
     width: 800px;
     height: 800px;
-    border: solid;
     margin: auto;
     position: relative;
 `;
@@ -77,30 +76,39 @@ const EndPiece = styled.div`
     }
 `;
 
-const EndPieceImage = styled.img`
-    width: 100%; /* Make the image fill the container width */
-    height: 100%; /* Make the image fill the container height */
-    object-fit: cover; /* Ensure the image covers the container without stretching */
-`;
-
 const WallPiece = styled.div`
     background-color: grey;
     display: grid;
     grid-template-rows: 1fr 1fr 1fr 1fr;
-    border: 5px solid #8b0000;
+    border: 2px solid #8b0000;
     & > div {
         background-color: #b22222;
-        border: 5px solid #8b0000;
+        border: 2px solid #8b0000;
         position: relative;
     }
 `;
 
 const Character = styled.p`
-    width: 20px;
-    height: 20px;
-    background-color: black;
-    border-radius: 180px;
-    position: absolute;
+  width: 30px;
+  height: 30px;
+  background-color: #ffcc00; /* Bright yellow */
+  border-radius: 50%;
+  position: absolute;
+  border: 3px solid #ff6600; /* Orange border */
+  box-shadow: 0 0 10px rgba(255, 102, 0, 0.5), /* Outer glow */
+              inset 0 0 5px rgba(0, 0, 0, 0.3); /* Inner shadow */
+  transform-origin: center 10px; /* Set the origin point */
+  animation: orbit 2s infinite linear; /* Orbiting animation */
+
+  /* Orbiting Animation */
+  @keyframes orbit {
+    0% {
+      transform: rotate(0deg) translateX(10px) rotate(0deg); /* Start position */
+    }
+    100% {
+      transform: rotate(360deg) translateX(10px) rotate(-360deg); /* Full orbit */
+    }
+  }
 `;
 
 const GameWon = styled.div`
@@ -198,7 +206,7 @@ const Maze = () => {
           }
 
           setGameWon(true)
-          setPlayerPos(true)
+          setPlayerPos(newPos)
         }
 
         // Update the player's position
@@ -230,7 +238,8 @@ const Maze = () => {
                         return <EndPiece key={idx}></EndPiece>;
                     }
                 })}
-                <Character style={{ top: `${playerPos.top}px`, left: `${playerPos.left}px` }} />
+                <Character style={{ top: `${playerPos.top}px`, left: `${playerPos.left}px` }}>
+                </Character>
                 {
                   displayGameWon ? <GameWon>
                     <h1>GAME WON !</h1>
