@@ -28,10 +28,6 @@ const PathPiece = styled.div`
   border: 1px solid #5a8f3d;
 `;
 
-const StartingPiece = styled.div`
-  background-color: blue;
-`;
-
 const EndPiece = styled.div`
   background-color: #78c850;
   position: relative;
@@ -143,6 +139,59 @@ const GameWon = styled.div`
   }
 `;
 
+const GameLost = styled.div`
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 500;
+  background-color: rgba(255, 255, 255, 0.95);
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  animation: fadeIn 0.5s ease-in-out;
+
+  @keyframes fadeIn {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -60%);
+    }
+    100% {
+      opacity: 1;
+      transform: translate(-50%, -50%);
+    }
+  }
+
+  & > h1 {
+    font-size: 2.5rem;
+    color: #2c3e50;
+    margin-bottom: 30px;
+    border-bottom: 3px solid #e74c3c;
+    padding-bottom: 10px;
+  }
+
+  & > button {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    padding: 10px 20px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+
+    &:hover {
+      background-color: #c0392b;
+      transform: scale(1.05);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+`;
+
 const Maze = () => {
   const [gameMaze, setGameMaze] = useState(generateMaze());
   const [playerPos, setPlayerPos] = useState(generatePlayerPos(gameMaze));
@@ -153,7 +202,11 @@ const Maze = () => {
   // Move the maze down every 0.1 seconds
   useEffect(() => {
     const interval = setInterval(() => {
-      setMazeOffset((prevOffset) => prevOffset + 2); // Move the maze down by 2px
+      if (gameOver || displayGameWon) return;
+      if (window.innerHeight < document.getElementById("character").getBoundingClientRect().top) {
+        setGameOver(true)
+      }
+      setMazeOffset((prevOffset) => prevOffset + 3); // Move the maze down by 2px
     }, 100); // 0.1 seconds
 
     return () => clearInterval(interval); // Cleanup interval on unmount
@@ -167,7 +220,11 @@ const Maze = () => {
   }, [playerPos]);
 
   const handleKeyDown = (press) => {
-    if (gameOver) return; // Disable movement if the game is over
+    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(press.key)) {
+          press.preventDefault();
+    }
+    
+    if (gameOver || displayGameWon) return; // Disable movement if the game is over
 
     const newPos = { ...playerPos };
 
@@ -210,7 +267,7 @@ const Maze = () => {
   useEffect(() => {
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [playerPos, gameOver]);
+  }, [playerPos]);
 
   return (
     <>
@@ -232,40 +289,41 @@ const Maze = () => {
             return <EndPiece key={idx}></EndPiece>;
           }
         })}
-        <Character style={{ top: `${playerPos.top}px`, left: `${playerPos.left}px` }} />
-        {displayGameWon && (
-          <GameWon>
-            <h1>GAME WON!</h1>
-            <button
-              onClick={() => {
-                setGameMaze(generateMaze());
-                setPlayerPos(generatePlayerPos(gameMaze));
-                setGameWon(false);
-                setMazeOffset(0); // Reset maze offset
-                setGameOver(false); // Reset game over state
-              }}
-            >
-              Click here to reset game
-            </button>
-          </GameWon>
-        )}
-        {gameOver && (
-          <GameWon>
-            <h1>GAME OVER!</h1>
-            <button
-              onClick={() => {
-                setGameMaze(generateMaze());
-                setPlayerPos(generatePlayerPos(gameMaze));
-                setGameWon(false);
-                setMazeOffset(0); // Reset maze offset
-                setGameOver(false); // Reset game over state
-              }}
-            >
-              Click here to reset game
-            </button>
-          </GameWon>
-        )}
+        <Character style={{ top: `${playerPos.top}px`, left: `${playerPos.left}px` }}  id="character"/>
       </MazeCont>
+      {
+          displayGameWon ? <GameWon>
+          <h1>GAME WON!</h1>
+          <button
+            onClick={() => {
+              setGameMaze(generateMaze());
+              setPlayerPos(generatePlayerPos(gameMaze));
+              setGameWon(false);
+              setMazeOffset(0); // Reset maze offset
+              setGameOver(false); // Reset game over state
+            }}
+          >
+            Click here to reset game
+          </button>
+        </GameWon> : null
+        }
+
+        {
+          gameOver ? <GameLost>
+          <h1>GAME LOST!</h1>
+          <button
+            onClick={() => {
+              setGameMaze(generateMaze());
+              setPlayerPos(generatePlayerPos(gameMaze));
+              setMazeOffset(0); // Reset maze offset
+              setGameOver(false); // Reset game over state
+              setGameWon(false)
+            }}
+          >
+            Click here to reset game
+          </button>
+        </GameLost> : null
+        }
     </>
   );
 };
